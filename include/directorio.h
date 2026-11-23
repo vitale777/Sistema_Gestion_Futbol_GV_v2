@@ -130,6 +130,29 @@ public:
             }
         }
     }
+    // Exporta todos los jugadores de la Tabla Hash en formato CSV
+    void exportarCSV(std::ostream& out) const {
+        for (size_t i = 0; i < capacidad; ++i) {
+            NodoHash* actual = tabla[i];
+            while (actual != nullptr) {
+                const Jugador& j = actual->dato;
+                out << j.getCedula() << ","
+                    << j.getNombre() << ","
+                    << j.getFechaNacimiento() << ","
+                    << j.getPosicion() << ","
+                    << j.getDorsal() << ","
+                    << j.getCategoria() << ","
+                    << j.getGoles() << ","
+                    << j.getAsistencias() << ","
+                    << j.getMinutos() << ","
+                    << j.getAsisEntrenamientos() << ","
+                    << j.getTotalEntrenos() << ","
+                    << (j.isSolvente() ? 1 : 0) << ","
+                    << (j.isElegibleComet() ? 1 : 0) << "\n";
+                actual = actual->siguiente;
+            }
+        }
+    }
 };
 
 #endif // DIRECTORIO_H

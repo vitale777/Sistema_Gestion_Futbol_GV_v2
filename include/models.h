@@ -145,6 +145,11 @@ public:
     int getGoles()       const { return goles; }
     int getAsistencias() const { return asistencias; }
     int getMinutos()     const { return minutos_jugados; }
+    int getFechaNacimiento()    const { return fecha_nacimiento; }
+    int getAsisEntrenamientos() const { return asis_entrenamientos; }
+    int getTotalEntrenos()      const { return total_entrenos; }
+    bool isSolvente()           const { return solvente_pago; }
+    bool isElegibleComet()      const { return elegible_comet; }
 
     void registrarGol()               { goles++; }
     void registrarAsistenciaDeportiva() { asistencias++; }

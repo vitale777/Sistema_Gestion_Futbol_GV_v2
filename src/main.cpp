@@ -5,6 +5,7 @@
 #include "../include/models.h"
 #include "../include/directorio.h"
 #include "../include/ranking_bst.h"
+#include "../include/persistencia.h"
 
 // Limpieza de pantalla multiplataforma
 #ifdef _WIN32
@@ -188,8 +189,16 @@ std::string leerTextoNoVacio(const std::string& mensaje) {
 }
 
 int main() {
-    // Instanciamos la Tabla Hash en RAM (101 cubetas)
-    SistemaClub gestorGV(101); 
+    // Instanciamos la Tabla Hash en RAM (101 cubetas) y cargamos persistencia CSV si existe
+    SistemaClub gestorGV(101);
+    int cargadosInicio = PersistenciaCSV::cargarCSV(gestorGV);
+    if (cargadosInicio > 0) {
+        limpiarPantalla();
+        std::cout << "[+] Se cargaron " << cargadosInicio
+                  << " jugador(es) desde " << PersistenciaCSV::RUTA_CSV << ".\n";
+        pausar();
+    }
+
     int opcion = 0;
 
     while (opcion != 7) {
@@ -320,6 +329,11 @@ int main() {
             std::cout << "=========================================\n";
             std::cout << "  Saliendo del Sistema de Gestion 'GV'   \n";
             std::cout << "=========================================\n";
+            if (PersistenciaCSV::guardarCSV(gestorGV)) {
+                std::cout << "Datos guardados en " << PersistenciaCSV::RUTA_CSV << ".\n";
+            } else {
+                std::cout << "[!] Aviso: No se pudo guardar en " << PersistenciaCSV::RUTA_CSV << ".\n";
+            }
             std::cout << "Liberando recursos de la Tabla Hash...\n";
             std::cout << "Sesion finalizada con exito.\n";
         }

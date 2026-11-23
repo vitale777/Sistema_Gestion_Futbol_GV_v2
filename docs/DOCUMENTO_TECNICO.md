@@ -1,25 +1,43 @@
-# Documento Técnico: Sistema Integral de Gestión Deportiva y Táctica - Fútbol
-**Autor:** Edmundo Gabriele Vitale Dugarte
-**Cátedra:** Programación 3 (ULA)
+# Documento Técnico (SDD): Sistema Integral de Gestión Deportiva y Táctica - Fútbol (GV)
 
-## 1. Resumen del Proyecto
-El presente proyecto consiste en el desarrollo de un software backend robusto en C++ diseñado para la administración integral de un club de fútbol. El sistema automatiza el control estadístico, administrativo y médico de los jugadores (desde categorías inferiores hasta profesionales), empleando estructuras de datos dinámicas y algoritmos de alta eficiencia en gestión de memoria.
+**Autor:** Edmundo Gabriele Vitale Dugarte  
+**Cátedra:** Programación 3 — Universidad de Los Andes (ULA)  
+**Lenguaje y Estándar:** C++17 (compilación estricta con `-Wall -Wextra`, sin librerías externas)  
+
+---
+
+## 1. Resumen del Proyecto y Contexto
+El presente proyecto consiste en el desarrollo de un software backend robusto en C++17 diseñado para la administración integral de un club de fútbol (**GV**). El sistema automatiza el control estadístico, administrativo y médico de los jugadores (desde categorías formativas como Sub-13 a Sub-16 hasta categorías superiores), empleando estructuras de datos dinámicas implementadas manualmente y una gestión estricta de memoria.
+
+### Alcance Actual y Visión
+* **Dentro del alcance actual:** Registro y directorio de atletas en $O(1)$, historial médico dinámico con validación de convocatoria en tiempo real, ranking deportivo ordenado dinámicamente, interfaz de consola robusta y suite de pruebas automatizadas.
+* **Evolución planificada:** Persistencia en archivos planos (`data/jugadores.csv`) y posterior acoplamiento de una interfaz gráfica (GUI) con gestión visual de plantilla y pizarra táctica, reutilizando intacto el núcleo lógico actual.
+
+---
 
 ## 2. Objetivos Claros
-*   **Objetivo General:** Desarrollar un sistema de gestión deportiva en C++ que centralice la información de los atletas mediante estructuras de datos no lineales, asegurando tiempos de respuesta óptimos (O(1)).
-*   **Objetivos Específicos:**
-    *   Diseñar el modelado de clases de la entidad Jugador mediante POO.
-    *   Implementar un motor de búsqueda instantáneo basado en Tablas Hash para el directorio del club.
-    *   Desarrollar un "Semáforo Médico y Administrativo" autónomo que valide la elegibilidad del jugador en tiempo real.
+* **Objetivo General:** Desarrollar un sistema de gestión deportiva en C++17 que centralice la información de los atletas mediante estructuras de datos lineales y no lineales propias, asegurando tiempos de respuesta óptimos ($O(1)$ en búsquedas clave) y ausencia de fugas de memoria.
+* **Objetivos Específicos:**
+  * Diseñar el modelado de clases de la entidad `Jugador` mediante Programación Orientada a Objetos (POO).
+  * Implementar un motor de búsqueda e inserción instantáneo basado en Tablas Hash para el directorio del club.
+  * Desarrollar un "Semáforo Médico y Administrativo" autónomo que valide la elegibilidad del jugador en tiempo real.
+  * Construir un sistema de ranking deportivo determinístico basado en Árboles Binarios de Búsqueda (BST).
+  * Garantizar la calidad del código mediante pruebas unitarias automatizadas y compilación libre de advertencias.
 
-## 3. Desarrollo y Avances Semanales
+---
 
-### Semana 1: Arquitectura Base y Motor Hash
-*Fecha: Noviembre 2026*
+## 3. Arquitectura General y Separación de Capas
+El proyecto sigue una arquitectura modular diseñada para mantener la lógica de negocio y las estructuras de datos completamente desacopladas de la capa de presentación:
 
-**Aspectos Teóricos y Técnicos Desarrollados:**
-1.  **Modelado y Herencia (POO):** Se estableció la jerarquía de clases instanciando `Persona` como clase base y `Jugador` como entidad principal.
-2.  **Directorio Hash (O(1)):** Se implementó la clase `SistemaClub` operando como una Tabla Hash con encadenamiento separado. Se utilizó la función polinomial de dispersión **DJB2** para transformar la cédula (string) en un índice numérico uniforme. Se configuró un tamaño de tabla base de 101 (número primo) para minimizar colisiones.
-3.  **Gestión de Fugas de Memoria:** La estructura Hash cuenta con un destructor especializado (`~SistemaClub`) que recorre iterativamente las listas de encadenamiento liberando la memoria dinámica (`delete`) al cierre del programa, previniendo *memory leaks*.
-4.  **Listas Enlazadas Simples (Historial Médico):** Se integró una TDA de Lista Enlazada Simple propia (`ListaMedica`) acoplada a cada jugador. Las inserciones operan bajo una lógica `insert_first` (O(1)) para colocar los partes médicos recientes en la cabeza de la estructura. 
-5.  **Lógica de Negocio (Semáforo):** El método `esConvocable()` evalúa en tiempo real las variables booleanas administrativas (solvencia y COMET) y el estado lógico del nodo en la cabeza del historial médico.
+```text
+Sistema_Gestion_Futbol/
+├── docs/
+│   └── DOCUMENTO_TECNICO.md   # Documentación de diseño (SDD)
+├── include/
+│   ├── models.h               # Entidades de dominio (Persona, Jugador, ListaMedica)
+│   ├── directorio.h           # Motor Hash (SistemaClub) y operaciones CRUD
+│   └── ranking_bst.h          # Árbol Binario de Búsqueda (RankingBST)
+├── src/
+│   └── main.cpp               # Capa de presentación (menú consola y validaciones)
+└── tests/
+    └── test_sistema.cpp       # Suite de pruebas unitarias automatizadas

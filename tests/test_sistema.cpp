@@ -6,6 +6,8 @@
 #include "../include/models.h"
 #include "../include/directorio.h"
 #include "../include/ranking_bst.h"
+#include "../include/persistencia.h"
+#include <cstdio>
 
 // ========================================================
 // SUITE DE PRUEBAS AUTOMATIZADAS - SISTEMA CLUB 'GV'
@@ -391,6 +393,82 @@ int main() {
     std::cout << "\n====================================================\n";
     std::cout << " RESULTADO FINAL: 12/12 PRUEBAS SUPERADAS [OK]      \n";
     std::cout << "====================================================\n";
+    // ============================================================
+    // TESTS 13-15: PERSISTENCIA EN CSV
+    // ============================================================
 
+    std::cout << "\n[RUN ] Test 13: Guardar y cargar CSV conservando datos y ranking...\n";
+    {
+        const std::string archivoPrueba = "data/test_jugadores_13.csv";
+        std::remove(archivoPrueba.c_str());
+
+        SistemaClub clubOrigen(101);
+        Jugador jA = crearJugadorConStats("91001", "Jugador CSV A", 4, 2);
+        Jugador jB = crearJugadorConStats("91002", "Jugador CSV B", 2, 1);
+        jB.suspenderPorPago();
+
+        assert(clubOrigen.registrarJugador(jA) == true);
+        assert(clubOrigen.registrarJugador(jB) == true);
+        assert(PersistenciaCSV::guardarCSV(clubOrigen, archivoPrueba) == true);
+
+        SistemaClub clubDestino(101);
+        int cargados = PersistenciaCSV::cargarCSV(clubDestino, archivoPrueba);
+        assert(cargados == 2);
+        assert(clubDestino.getTotalJugadores() == 2);
+
+        Jugador* recA = clubDestino.buscarJugador("91001");
+        Jugador* recB = clubDestino.buscarJugador("91002");
+        assert(recA != nullptr && recA->getGoles() == 4 && recA->getAsistencias() == 2);
+        assert(recB != nullptr && recB->esConvocable() == false);
+
+        std::remove(archivoPrueba.c_str());
+    }
+    std::cout << "[PASS] Test 13: Persistencia y restauracion en CSV verificadas.\n";
+
+    std::cout << "[RUN ] Test 14: Prevencion de cedulas duplicadas al cargar CSV...\n";
+    {
+        const std::string archivoPrueba = "data/test_jugadores_14.csv";
+        std::remove(archivoPrueba.c_str());
+
+        SistemaClub clubTemp(101);
+        clubTemp.registrarJugador(crearJugadorConStats("92001", "Original CSV", 3, 1));
+        assert(PersistenciaCSV::guardarCSV(clubTemp, archivoPrueba) == true);
+
+        SistemaClub clubExistente(101);
+        Jugador yaExiste("92001", "Ya En Memoria", 20100101, "Defensa", 4, "Sub-15");
+        assert(clubExistente.registrarJugador(yaExiste) == true);
+
+        int cargados = PersistenciaCSV::cargarCSV(clubExistente, archivoPrueba);
+        assert(cargados == 0);
+        assert(clubExistente.getTotalJugadores() == 1);
+        assert(clubExistente.buscarJugador("92001")->getNombre() == "Ya En Memoria");
+
+        std::remove(archivoPrueba.c_str());
+    }
+    std::cout << "[PASS] Test 14: Duplicados ignorados correctamente al cargar CSV.\n";
+
+    std::cout << "[RUN ] Test 15: Manejo seguro de archivo inexistente y lineas corruptas...\n";
+    {
+        SistemaClub club(101);
+        assert(PersistenciaCSV::cargarCSV(club, "data/archivo_que_no_existe.csv") == 0);
+        assert(club.getTotalJugadores() == 0);
+
+        const std::string archivoCorrupto = "data/test_jugadores_15.csv";
+        std::ofstream out(archivoCorrupto);
+        out << PersistenciaCSV::CABECERA << "\n";
+        out << "\n";
+        out << "93001,Fila Incompleta,20100101\n";
+        out << "93002,Texto En Dorsal,20100101,Delantero,NO_NUM,Sub-15,1,0,90,1,1,1,1\n";
+        out << "93003,Jugador Valido,20100101,Delantero,10,Sub-15,2,1,180,2,2,1,1\n";
+        out.close();
+
+        int cargados = PersistenciaCSV::cargarCSV(club, archivoCorrupto);
+        assert(cargados == 1);
+        assert(club.getTotalJugadores() == 1);
+        assert(club.buscarJugador("93003") != nullptr);
+
+        std::remove(archivoCorrupto.c_str());
+    }
+    std::cout << "[PASS] Test 15: Archivo inexistente y filas corruptas manejados sin errores.\n";
     return 0;
 }
